@@ -2,7 +2,7 @@
 : BOOT     0 ; 
 : SP0      6 ; 
 : RP0      7 ; 
-: '?KEY     8 ; 
+: '?KEY    8 ; 
 : 'EMIT    9 ; 
 : 'EXPECT 10 ; 
 : 'TAP    11 ; 
@@ -38,70 +38,94 @@
 : =WORDLIST 2 ; 
 
 : + UM+ DROP ; 
+: IMMEDIATE LAST @ -1 + =IMMED SWAP ! ; 
 
 : +! SWAP OVER @ + SWAP ! ; 
 : HERE CP @ ; 
 : ALLOT CP +! ; 
 : , HERE 1 ALLOT ! ;  
-: IMMEDIATE LAST @ -1 + =IMMED SWAP ! ; 
 : [,] , ; IMMEDIATE  
 
-: OP_NOP      0 , ; IMMEDIATE 
-: OP_HALT     1 , ; IMMEDIATE 
-: OP_LIT      2 , ; IMMEDIATE 
-: OP_EXIT     3 , ; IMMEDIATE 
-: OP_LOAD     4 , ; IMMEDIATE 
-: OP_STORE    5 , ; IMMEDIATE 
-: OP_DROP     6 , ; IMMEDIATE 
-: OP_OVER     7 , ; IMMEDIATE 
-: OP_SWAP     8 , ; IMMEDIATE 
-: OP_DUP      9 , ; IMMEDIATE 
-: OP_UMADD   10 , ; IMMEDIATE 
-: OP_NAND    11 , ; IMMEDIATE 
-: OP_LTZ     12 , ; IMMEDIATE 
-: OP_TO_R    13 , ; IMMEDIATE 
-: OP_FROM_R  14 , ; IMMEDIATE 
-: OP_NEXT    15 , ; IMMEDIATE 
-: OP_BRANCH  16 , ; IMMEDIATE 
-: OP_ZBRANCH 17 , ; IMMEDIATE 
-: OP_EXECUTE 18 , ; IMMEDIATE 
-: OP_PUTC    19 , ; IMMEDIATE 
-: OP_GETC    20 , ; IMMEDIATE 
+: NOP      0 , ; IMMEDIATE 
+: HALT     1 , ; IMMEDIATE 
+: LIT      2 , ; IMMEDIATE 
+: EXIT     3 , ; IMMEDIATE 
+: @        4 , ; IMMEDIATE 
+: !        5 , ; IMMEDIATE 
+: DROP     6 , ; IMMEDIATE 
+: OVER     7 , ; IMMEDIATE 
+: SWAP     8 , ; IMMEDIATE 
+: DUP      9 , ; IMMEDIATE 
+: UM+     10 , ; IMMEDIATE 
+: NAND    11 , ; IMMEDIATE 
+: 0<      12 , ; IMMEDIATE 
+: >R      13 , ; IMMEDIATE 
+: R>      14 , ; IMMEDIATE 
+: next    15 , ; IMMEDIATE 
+: BRANCH  16 , ; IMMEDIATE 
+: 0BRANCH 17 , ; IMMEDIATE 
+: EXECUTE 18 , ; IMMEDIATE 
+: PUTC    19 , ; IMMEDIATE 
+: GETC    20 , ; IMMEDIATE 
 
-: COMPILE OP_FROM_R OP_DUP OP_LOAD , 1 + OP_TO_R ; 
-: COMPILE? STATE OP_LOAD ; 
-: IF COMPILE OP_ZBRANCH HERE 0 , ; IMMEDIATE 
-: THEN HERE OP_SWAP OP_STORE ; IMMEDIATE 
+: COMPILE R> DUP @ , 1 + >R ; 
+: COMPILE? STATE @ ; 
+: LITERAL COMPILE LIT , ; IMMEDIATE 
 
-: NOP COMPILE? IF COMPILE OP_NOP THEN ; IMMEDIATE 
-: HALT COMPILE? IF COMPILE OP_HALT THEN ; IMMEDIATE 
-: LIT COMPILE? IF COMPILE OP_LIT THEN ; IMMEDIATE 
-: EXIT COMPILE? IF COMPILE OP_EXIT THEN ; IMMEDIATE 
-: UM+ COMPILE? IF COMPILE OP_UMADD THEN ; IMMEDIATE 
-: >R COMPILE? IF COMPILE OP_TO_R THEN ; IMMEDIATE 
-: R> COMPILE? IF COMPILE OP_FROM_R THEN ; IMMEDIATE 
-: next COMPILE? IF COMPILE OP_NEXT THEN ; IMMEDIATE 
-: BRANCH COMPILE? IF COMPILE OP_BRANCH THEN ; IMMEDIATE 
-: ZBRANCH COMPILE? IF COMPILE OP_ZBRANCH THEN ; IMMEDIATE 
-: PUTC COMPILE? IF COMPILE OP_PUTC THEN ; IMMEDIATE 
-: GETC COMPILE? IF COMPILE OP_GETC THEN ; IMMEDIATE 
-: @ COMPILE? IF COMPILE OP_LOAD EXIT THEN OP_LOAD ; IMMEDIATE 
-: ! COMPILE? IF COMPILE OP_STORE EXIT THEN OP_STORE ; IMMEDIATE 
-: DROP COMPILE? IF COMPILE OP_DROP EXIT THEN OP_DROP ; IMMEDIATE 
-: OVER COMPILE? IF COMPILE OP_OVER EXIT THEN OP_OVER ; IMMEDIATE 
-: SWAP COMPILE? IF COMPILE OP_SWAP EXIT THEN OP_SWAP ; IMMEDIATE 
-: DUP COMPILE? IF COMPILE OP_DUP EXIT THEN OP_DUP ; IMMEDIATE 
-: 0< COMPILE? IF COMPILE OP_LTZ EXIT THEN OP_LTZ ; IMMEDIATE 
-: EXECUTE COMPILE? IF COMPILE OP_EXECUTE EXIT THEN OP_EXECUTE ; IMMEDIATE 
-: NAND COMPILE? IF COMPILE OP_NAND EXIT THEN OP_NAND ; IMMEDIATE 
+: [ FALSE STATE ! ; IMMEDIATE 
+: ] TRUE STATE ! ; IMMEDIATE 
 
- : LITERAL COMPILE LIT , ; IMMEDIATE 
+: IF COMPILE 0BRANCH HERE 0 , ; IMMEDIATE 
+: THEN HERE SWAP ! ; IMMEDIATE 
+: FOR COMPILE >R HERE ; IMMEDIATE 
+: NEXT COMPILE next , ; IMMEDIATE 
+: BEGIN HERE ; IMMEDIATE 
+: AGAIN COMPILE BRANCH , ; IMMEDIATE 
+: UNTIL COMPILE 0BRANCH , ; IMMEDIATE 
+: AHEAD COMPILE BRANCH HERE 0 , ; IMMEDIATE 
+: REPEAT ['] AGAIN [,] HERE SWAP ! ; IMMEDIATE 
+: AFT DROP ['] AHEAD [,] ['] BEGIN [,] SWAP ; IMMEDIATE 
+: ELSE ['] AHEAD [,] SWAP ['] THEN [,] ; IMMEDIATE 
+: WHILE ['] IF [,] SWAP ; IMMEDIATE 
+: @EXECUTE @ DUP IF EXECUTE THEN ; 
+
+: @       COMPILE? IF 
+              COMPILE @ EXIT THEN @ ; IMMEDIATE 
+: !       COMPILE? IF 
+              COMPILE ! EXIT THEN ! ; IMMEDIATE 
+: DROP    COMPILE? IF 
+              COMPILE DROP EXIT THEN DROP ; IMMEDIATE 
+: OVER    COMPILE? IF 
+              COMPILE OVER EXIT THEN OVER ; IMMEDIATE 
+: SWAP    COMPILE? IF 
+              COMPILE SWAP EXIT THEN SWAP ; IMMEDIATE 
+: DUP     COMPILE? IF 
+              COMPILE DUP EXIT THEN DUP ; IMMEDIATE 
+
+: #TIB #TIBB @ ; 
+: TIB TIBB @ ;  
+: \ #TIB @ >IN ! ; IMMEDIATE 
+
+100 #TIBB ! 
+101 TIBB ! 
+
+35 SP0 ! 
+99 RP0 ! 
  
 : ROT >R SWAP R> SWAP ; 
 : -ROT SWAP >R SWAP R> ; 
+: NIP SWAP DROP ; 
+: TUCK SWAP OVER ; 
+
+: R@ R> R> DUP >R SWAP >R ; 
+: 2>R SWAP R> SWAP >R SWAP >R >R ; 
+: 2R> R> R> SWAP R> SWAP >R SWAP ; 
+: 2R@ R> R> R@ SWAP >R SWAP R@ SWAP >R ; 
 : 2DROP DROP DROP ; 
 : 2DUP OVER OVER ; 
-: NIP SWAP DROP ; 
+: 2SWAP ROT >R ROT R> ; 
+: 2OVER >R >R 2DUP R> R> 2SWAP ; 
+: 2ROT 2>R 2SWAP 2R> 2SWAP ; 
 
 : NOT DUP NAND ; 
 : AND NAND NOT ; 
@@ -112,46 +136,70 @@
 : NEGATE NOT 1 + ; 
 : - NEGATE + ; 
 
+: 1+ 1 + ; 
+: 1- 1 - ; 
+: 2+ 2 + ; 
+: 2- 2 - ; 
+
 : D+ >R SWAP >R UM+ R> R> + + ; 
 : DNEGATE NOT >R NOT 1 UM+ R> + ; 
+: D- DNEGATE D+ ; 
 
-: FOR COMPILE >R HERE ; IMMEDIATE 
-: NEXT COMPILE next , ; IMMEDIATE 
-: BEGIN HERE ; IMMEDIATE 
-: AGAIN COMPILE BRANCH , ; IMMEDIATE 
-: UNTIL COMPILE ZBRANCH , ; IMMEDIATE 
-: AHEAD COMPILE BRANCH HERE 0 , ; IMMEDIATE 
-: REPEAT ' AGAIN [,] HERE SWAP ! ; IMMEDIATE 
-: AFT DROP ' AHEAD [,] ' BEGIN [,] SWAP ; IMMEDIATE 
-: ELSE ' AHEAD [,] SWAP ' THEN [,] ; IMMEDIATE 
-: WHILE ' IF [,] SWAP ; IMMEDIATE 
-: @EXECUTE @ DUP IF EXECUTE THEN ; 
-
-: CELL+ 1 + ; 
-: CELL- 1 - ; 
-: CELLS 0 + ; 
+: CELL+   1 + ; 
+: CELL-   1 - ; 
+: CELLS   0 + ; 
 : ALIGNED 1 + ; 
 
-: [ FALSE STATE ! ; IMMEDIATE 
-: ] TRUE STATE ! ; IMMEDIATE 
+: 2! SWAP OVER ! CELL+ ! ; 
+: 2@ DUP CELL+ @ SWAP @ ; 
+
 : TX! PUTC ; 
-' TX! 'EMIT ! 
+['] TX! 'EMIT ! 
 : EMIT 'EMIT @EXECUTE ; 
+: COUNT DUP 1+ SWAP @ ; 
+: TYPE FOR AFT DUP @ EMIT 1+ THEN NEXT DROP ; 
+
 : ?RX GETC ; 
-' ?RX '?KEY !  
+['] ?RX '?KEY !  
 : ?KEY '?KEY @EXECUTE ; 
 : KEY BEGIN ?KEY UNTIL ; 
-: TYPE FOR AFT DUP @ EMIT 1 + THEN NEXT DROP ; 
+
 : ?DUP DUP IF DUP THEN ; 
+: S>D DUP 0< ; 
 : ABS DUP 0< IF NEGATE THEN ; 
+: DABS DUP 0< IF DNEGATE THEN ; 
+
 : U< 2DUP XOR 0< IF SWAP DROP 0< EXIT THEN - 0< ; 
+: U> SWAP U< ; 
 : = XOR IF FALSE EXIT THEN TRUE ; 
 : < 2DUP XOR 0< IF DROP 0< EXIT THEN - 0< ; 
 : > SWAP < ; 
-: MAX 2DUP < IF SWAP THEN DROP ; 
+: 0> NEGATE 0< ; 
+: 0<> IF TRUE EXIT THEN FALSE ; 
+: 0= 0 = ; 
+: <> = 0= ; 
+
+: D0< SWAP DROP 0< ; 
+: D0> DNEGATE D0< ; 
+: D0= OR 0= ; 
+: D= D- D0= ; 
+: D< ROT 2DUP XOR IF SWAP 2SWAP 2DROP < ; 
+: DU< ROT 2DUP XOR IF SWAP 2SWAP THEN THEN 2DROP U< ; 
+: DMIN 2OVER 2OVER 2SWAP D< IF 2SWAP THEN 2DROP ; 
+: DMAX 2OVER 2OVER D< IF 2SWAP THEN 2DROP ; 
+
+: M+ S>D D+ ; 
+: M- S>D D- ; 
+
 : MIN 2DUP SWAP < IF SWAP THEN DROP ; 
+: MAX 2DUP < IF SWAP THEN DROP ; 
+: UMIN 2DUP SWAP U< IF SWAP THEN DROP ; 
+: UMAX 2DUP U< IF SWAP THEN DROP ; 
 : WITHIN OVER - >R - R> U< ; 
-: R@ R> R> DUP >R SWAP >R ; 
+: SP@ SPP @ ; 
+: DEPTH SP@ SP0 @ - ; 
+: PICK SP@ SWAP - 2- @ ; 
+: NUF? ?KEY DUP IF 2DROP KEY 10 = THEN ; 
 
 : UM/MOD 
     2DUP U< 
@@ -162,7 +210,7 @@
                 R> + DUP R> R@ SWAP 
             >R UM+ 
             R> OR 
-                IF >R DROP 1 + R> 
+                IF >R DROP 1+ R> 
                 ELSE DROP 
             THEN R> 
         NEXT DROP SWAP EXIT 
@@ -179,7 +227,7 @@
     
 : /MOD OVER 0< SWAP M/MOD ; 
 : MOD /MOD DROP ; 
-: / /MOD SWAP DROP ; 
+: / /MOD NIP ; 
 
 : UM* 
     0 SWAP 
@@ -204,43 +252,49 @@
 : */MOD >R M* R> M/MOD ; 
 : */ */MOD SWAP DROP ; 
 
+: 2* 2 * ; 
+: 2/ 2 / ; 
 
- : #TIB #TIBB @ ; 
-: TIB TIBB @ ;  
+: MU/MOD >R 0 R@ UM/MOD R> SWAP >R UM/MOD R> ; 
+: D2* 2DUP D+ ; 
+: DU2/ 2 MU/MOD ROT DROP ; 
+: D2/ DUP >R 1 AND DU2/ R> 2/ OR ; 
+
 : parse 
     tmp ! OVER >R DUP 
     IF 
         1 - tmp @ BL = 
         IF 
             FOR BL OVER @ - 0< NOT 
-            WHILE 1 + 
+            WHILE 1+ 
             NEXT R> DROP 0 DUP EXIT 
             THEN R> 
         THEN 
             OVER SWAP 
         FOR tmp @ OVER @ - tmp @ BL = 
             IF 0< THEN 
-        WHILE 1 + 
+        WHILE 1+ 
         NEXT DUP >R 
-        ELSE R> DROP DUP 1 + >R 
+        ELSE R> DROP DUP 1+ >R 
         THEN OVER - R> R> - EXIT 
     THEN OVER R> - ; 
 : PARSE >R TIB >IN @ + #TIB @ >IN @ - R> parse >IN +! ; 
 : CHAR BL PARSE DROP @ ; 
-: ( [ CHAR ) ] LITERAL PARSE 2DROP ; IMMEDIATE 
-: .( [ CHAR ) ] LITERAL PARSE TYPE ; IMMEDIATE 
+
 : CMOVE 
     FOR AFT 
         >R 
-            DUP @ R@ ! 1 + 
-        R> 1 + 
+            DUP @ R@ ! 1+ 
+        R> 1+ 
     THEN NEXT 
     2DROP ; 
 : PACK$ 
     DUP 
     >R 
-        2DUP ! 1 + 2DUP + 0 SWAP ! SWAP CMOVE 
+        2DUP ! 1+ 2DUP + 0 SWAP ! SWAP CMOVE 
     R> ; 
+: FILL SWAP FOR SWAP AFT 2DUP ! 1 + THEN NEXT 2DROP ; 
+: -TRAILING FOR AFT BL OVER R@ + @ < IF R> 1 + EXIT THEN THEN NEXT 0 ; 
 : WORD PARSE HERE PACK$ ; 
 : TOKEN BL PARSE 31 MIN NP @ OVER - 1 - PACK$ ; 
 : NAME> 2 CELLS - @ ; 
@@ -249,54 +303,47 @@
         OVER R@ CELLS + @ 
         OVER R@ CELLS + @ 
         - ?DUP 
-        IF 
-            R> DROP 
-            EXIT 
-        THEN 
-        THEN 
-        
+        IF R> DROP EXIT THEN 
+    THEN 
     NEXT 0 ; 
-: find ( a va -- ca na, a F ) 
-    SWAP           ( va a )
-    DUP @ tmp !    ( va a -- get cell count ) 
-    DUP @ >R       ( va a -- save first cell ) 
-    1 + SWAP       ( 'a va )
+: find 
+    SWAP  
+    DUP @ tmp ! 
+    DUP @ >R 
+    1+ SWAP   
     BEGIN 
-        @ DUP      ( 'a na na ) 
+        @ DUP 
         IF DUP @ R@ XOR 
-            IF 
-                1 + -1 
-            ELSE 
-                1 + 
-                tmp @ 
-                SAME? 
+            IF 1+ -1 
+            ELSE 1+ tmp @ SAME? 
             THEN 
         ELSE 
             R> DROP 
-            SWAP 1 - SWAP 
+            SWAP 1- SWAP 
             EXIT 
         THEN 
-    WHILE 
-        4 - 
+    WHILE 4 - 
     REPEAT 
-    R> DROP NIP 
-    1 - 
+    R> DROP NIP 1- 
     DUP NAME> 
     SWAP ; 
     
 : ' TOKEN CURRENT find DUP IF DROP ELSE SWAP DROP THEN ; 
+: ['] COMPILE ' ; IMMEDIATE 
 : [COMPILE] ' , ; IMMEDIATE 
+: [CHAR] CHAR [COMPILE] LITERAL ; IMMEDIATE 
+: ( [CHAR] ) PARSE 2DROP ; IMMEDIATE 
 : :NONAME HERE [COMPILE] ] ; 
 : OVERT LAST @ CURRENT ! ; 
 : $,n ( na -- )
-    DUP LAST ! 1 - 
+    DUP LAST ! 1- 
     DUP =WORDLIST 
     SWAP ! 
-    1 - DUP HERE 
+    1- DUP HERE 
     SWAP ! 
-    1 - DUP CURRENT @ 
+    1- DUP CURRENT @ 
     SWAP ! 
-    1 - NP ! ; 
+    1- NP ! ; 
 
 : doVAR R> ; 
 : CREATE TOKEN $,n COMPILE doVAR OVERT ; 
@@ -305,10 +352,27 @@
 : ; COMPILE EXIT [COMPILE] [  OVERT ; IMMEDIATE 
 : RECURSE LAST @ CURRENT ! ; IMMEDIATE 
 : DOES 
-    LAST @ 2 - @ 
+    LAST @ 2- @ 
     R> SWAP !  ; 
 : DOES> COMPILE DOES COMPILE R> ; IMMEDIATE 
 : CONSTANT CREATE , DOES> @ ; 
+
+: 2LITERAL 
+    SWAP [COMPILE] LITERAL 
+    [COMPILE] LITERAL ; IMMEDIATE 
+: 2CONSTANT CREATE , , DOES> 2@ ; 
+: 2VARIABLE CREATE 2 CELLS ALLOT ; 
+
+16 CONSTANT #BITS 
+: LSHIFT 
+    BEGIN DUP WHILE >R DUP + R> 1- REPEAT DROP ; 
+    
+: RSHIFT 
+    0 SWAP [ #BITS ] LITERAL SWAP - 
+    BEGIN DUP 
+    WHILE >R 2DUP D+ R>  1- 
+    REPEAT DROP NIP ; 
+
 : SPACE BL EMIT ; 
 : SPACES 0 MAX FOR SPACE NEXT ; 
 : PAD HERE 80 + ;  
@@ -316,34 +380,44 @@
 : HEX 16 BASE ! ; 
 : BINARY 2 BASE ! ; 
 : OCTAL 8 BASE ! ; 
+
 DECIMAL 
-: DIGIT 9 OVER < 7 AND + [ CHAR 0 ] LITERAL + ; 
-: EXTRACT 0 SWAP UM/MOD SWAP DIGIT ; 
+
+: >CHAR 127 AND DUP 127 BL WITHIN IF DROP 95 THEN ; 
+: DIGIT 9 OVER < 7 AND + [CHAR] 0 + ; 
 : <# PAD HLD ! ; 
-: HOLD HLD @ 1 - DUP HLD ! ! ; 
-: # BASE @ EXTRACT HOLD ; 
-: #S BEGIN # DUP WHILE REPEAT ; 
-: SIGN 0 < IF [ CHAR - ] LITERAL HOLD THEN ; 
-: #> DROP HLD @ PAD OVER - ; 
-: str DUP >R ABS <# #S R> SIGN #> ; 
-: U. <# #S #> SPACE TYPE ; 
-: . BASE @ 10 XOR IF U. EXIT THEN str SPACE TYPE ; 
+: HOLD HLD @ 1- DUP HLD ! ! ; 
+: # 0 BASE @ UM/MOD >R BASE @ UM/MOD SWAP DIGIT HOLD R> ; 
+: #S BEGIN # 2DUP OR 0= UNTIL ; 
+: SIGN 0< IF [ CHAR - ] LITERAL HOLD THEN ; 
+: #> 2DROP HLD @ PAD OVER - ; 
+: S.R OVER - SPACES TYPE ; 
+: D.R >R DUP >R DABS <# #S R> SIGN #> R> S.R ; 
+: U.R 0 SWAP D.R ; 
+: .R >R S>D R> D.R ; 
+: D. 0 D.R SPACE ; 
+: U. 0 D. ;  
+: . BASE @ 10 XOR IF U. EXIT THEN S>D D. ; 
 : ? @ . ; 
+: DU.R >R <# #S #> R> S.R ; 
+: DU. DU.R SPACE ; 
 
-: COUNT DUP 1 + SWAP @ ; 
-
-: do$ R> R@ R> COUNT + 1 + >R SWAP >R ; 
+: do$ R> R@ R> COUNT + 1+ >R SWAP >R ; 
 : ."| do$ COUNT TYPE ; 
-: $," [ CHAR " ] LITERAL WORD COUNT + 1 + CP ! ; 
+: $," [CHAR] " WORD COUNT + 1+ CP ! ; 
 : ." COMPILE ."| $," ; IMMEDIATE 
-: CR 10 EMIT ;  
+: .( [CHAR] ) PARSE TYPE ; IMMEDIATE 
+: $"| do$ ; 
+: $" COMPILE $"| $," ; IMMEDIATE 
+: s" [CHAR] " PARSE PAD PACK$ ; 
 
+: CR 10 EMIT ;  
 ' DROP 'ECHO ! 
 : ^H 
     >R OVER R> 
     SWAP OVER XOR 
     IF 
-        BS EMIT 1 + 
+        BS EMIT 1+ 
         BL EMIT 
         BS EMIT 
     THEN ; 
@@ -357,7 +431,7 @@ DECIMAL
     THEN 
     DROP NIP DUP ; 
 ' KTAP 'TAP ! 
-: accept 
+: ACCEPT 
     OVER + OVER 
     BEGIN 
         2DUP XOR 
@@ -370,111 +444,51 @@ DECIMAL
     REPEAT 
     DROP 
     OVER - ; 
-' accept 'EXPECT ! 
+' ACCEPT 'EXPECT ! 
 : EXPECT 'EXPECT @EXECUTE SPAN ! DROP ; 
 : QUERY TIB 80 'EXPECT @EXECUTE #TIB ! DROP 0 >IN ! ; 
-: WORDS CURRENT @ 
-    BEGIN 
-        DUP COUNT TYPE SPACE 3 - @ SPACE ?DUP 
-    WHILE REPEAT CR ; 
-: STATS 
-    NP @ HERE 2DUP - >R 
-    ." CP:" . SPACE 
-    ." NP:" . SPACE 
-    R> DUP ." FREE:" . SPACE 
-    ." USED: " [ 1024 8 * ] LITERAL DUP >R SWAP - . SPACE 
-    R> ." /" .  CR    ; 
-: BYE ." See Ya " HALT ; 
-
-
-: >CHAR 127 AND DUP 127 BL WITHIN IF DROP 95 THEN ; 
-: SP@ SPP @ ; 
-: DEPTH SP@ SP0 @ - ; 
-: PICK SP@ SWAP - 2 - @ ; 
-: 2! SWAP OVER ! CELL+ ! ; 
-: 2@ DUP CELL+ @ SWAP @ ; 
-
-: FILL SWAP FOR SWAP AFT 2DUP ! 1 + THEN NEXT 2DROP ; 
-: -TRAILING FOR AFT BL OVER R@ + @ < IF R> 1 + EXIT THEN THEN NEXT 0 ; 
-: .R >R str R> OVER - SPACES TYPE ; 
-: U.R >R <# #S #> R> OVER - SPACES TYPE ;  
-: \ #TIB @ >IN ! ; IMMEDIATE 
-
-: $"| do$ ; 
-: $" COMPILE $"| $," ; IMMEDIATE 
-: .S CR DEPTH FOR AFT R@ PICK . THEN NEXT ." <sp" ;  
-
-: BYTE DUP + ; 
-: >>BYTE 7 FOR 2 / NEXT ; 
-: <<BYTE 7 FOR DUP + NEXT ; 
-
-: C@ 
-    2 /MOD @ SWAP 
-    0 = IF >>BYTE THEN 255 AND ; 
-    
-: C! 
-    2 /MOD SWAP OVER @ SWAP 
-    0 = IF 
-        ROT <<BYTE SWAP 255 AND OR 
-    ELSE 
-        ROT SWAP 255 <<BYTE AND OR 
-    THEN SWAP ! ; 
-    
-: s" HERE $," COUNT ALLOT 1 - ; 
 
 : DIGIT? 
     >R 
-    [ CHAR 0 ] LITERAL - 
+    [CHAR] 0 - 
     9 OVER < 
     IF 7 - DUP 10 < OR THEN 
     DUP R> U< ; 
-: NUMBER? 
-    BASE @ >R 
-    0 OVER COUNT 
-    OVER @ 
-    [ CHAR $ ] LITERAL = 
-    IF HEX 
-        SWAP 1 + 
-        SWAP 1 - 
-    THEN OVER @ 
-    [ CHAR - ] LITERAL = 
-    >R 
-    SWAP R@ - 
-    SWAP R@ + 
-    ?DUP 
-    IF 
-        1 - 
-        FOR DUP >R 
-            @ BASE @ DIGIT? 
-        WHILE SWAP 
-            BASE @ * + 
-            R> 1 + 
-        NEXT 
-            R@ 
-            NIP 
-            IF NEGATE THEN 
-            SWAP 
-        ELSE 
-            R> R> 
-            2DROP 
-            2DROP 0 
-        THEN DUP 
-    THEN 
-    R> 
-    2DROP 
-    R> BASE ! ; 
+: /STRING DUP >R - SWAP R> + SWAP ; 
 
+: >NUMBER 
+    BEGIN DUP 
+    WHILE >R DUP >R @ BASE @ DIGIT? 
+    WHILE SWAP BASE @ UM* DROP 
+    ROT BASE @ UM* D+ R> 1+ R> 1- 
+    REPEAT DROP R> R> THEN ; 
+
+VARIABLE DPL 
+: NUMBER? 
+    OVER @ [CHAR] - = DUP >R IF 1 /STRING THEN 
+    >R >R 0 DUP R> R> -1 DPL ! 
+    BEGIN >NUMBER DUP 
+    WHILE OVER @ [CHAR] . XOR 
+        IF ROT DROP ROT R> 2DROP 0 EXIT 
+        THEN 1 - DPL ! 1+ DPL @ 
+    REPEAT 2DROP R> IF DNEGATE THEN -1 ; 
 ' NUMBER? 'NUMBER ! 
 : $INTERPRET 
     CURRENT find ?DUP 
     IF DROP EXECUTE EXIT THEN 
-    'NUMBER @EXECUTE IF EXIT THEN ; 
+    COUNT 'NUMBER @EXECUTE IF 
+        DPL @ 0<  IF DROP THEN EXIT THEN ." ? " TYPE ; 
 : $COMPILE 
     CURRENT find ?DUP 
     IF 1 - @ CR =IMMED = 
     IF EXECUTE ELSE , THEN EXIT 
-    THEN 'NUMBER @EXECUTE 
-    IF [COMPILE] LITERAL EXIT THEN ; 
+    THEN COUNT 'NUMBER @EXECUTE 
+    IF 
+        DPL @ 0< 
+        IF DROP [COMPILE] LITERAL
+        ELSE SWAP [COMPILE] LITERAL [COMPILE] LITERAL 
+        THEN EXIT 
+    THEN ." ? " TYPE ; 
 : eval COMPILE? IF $COMPILE ELSE $INTERPRET THEN ; 
 ' eval 'EVAL ! 
 : EVAL 
@@ -486,50 +500,21 @@ DECIMAL
 ' OK 'PROMPT ! 
 : QUIT 
     BEGIN 'PROMPT @EXECUTE QUERY EVAL AGAIN ; 
+: .ID ?DUP IF COUNT TYPE EXIT THEN ." {noNAME} " ; 
+: WORDS CURRENT @ 
+    BEGIN 
+        DUP SPACE .ID SPACE 3 - @ ?DUP 
+    WHILE REPEAT CR ; 
+: STATS 
+    NP @ HERE 2DUP - >R 
+    ." CP:" . SPACE 
+    ." NP:" . SPACE 
+    R> DUP ." FREE:" . SPACE 
+    ." USED: " [ 1024 8 * ] LITERAL DUP >R SWAP - . SPACE 
+    R> ." /" .  CR    ; 
+: BYE ." See Ya " HALT ; 
+: .S CR DEPTH FOR AFT R@ PICK . THEN NEXT ." <sp " ;  
+
 ' QUIT BOOT ! 
-HERE s" BOOT" CURRENT find 3 - BOOT SWAP ! DROP CP ! 
-
-: CASE ; 
-: OF 
-    COMPILE OVER 
-    COMPILE = 
-    [COMPILE] IF 
-    COMPILE DROP ; IMMEDIATE 
-: ENDOF COMPILE EXIT [COMPILE] THEN ; IMMEDIATE 
-: ENDCASE COMPILE DROP ; IMMEDIATE 
-: >OF 
-    COMPILE OVER 
-    COMPILE < 
-    [COMPILE] IF 
-    COMPILE DROP ; IMMEDIATE 
-: <OF 
-    COMPILE OVER 
-    COMPILE > 
-    [COMPILE] IF 
-    COMPILE DROP ; IMMEDIATE 
-: (RANGE) 2 PICK -ROT WITHIN ; 
-: RANGE 
-    COMPILE (RANGE) 
-    [COMPILE] IF 
-    COMPILE DROP ; IMMEDIATE     
-: C2 
-    CASE 
-    1 OF ." ONE " ENDOF 
-    2 OF ." TWO " ENDOF 
-    3 OF ." THREE " ENDOF 
-    4 OF ." FOUR " ENDOF 
-    5 10 RANGE ." Between 4 and 10 " ENDOF 
-    9 >OF ." Larger than 9 " ENDOF 
-    ENDCASE ; 
-    
-16 CONSTANT #BITS 
-: LSHIFT 
-    BEGIN DUP WHILE >R DUP + R> 1 - REPEAT DROP ; 
-    
-: RSHIFT 
-    0 SWAP [ #BITS ] LITERAL SWAP - 
-    BEGIN DUP 
-    WHILE >R 2DUP D+ R>  1 - 
-    REPEAT DROP NIP ; 
-
-
+s" BOOT" CURRENT find 3 - BOOT SWAP ! DROP 
+   

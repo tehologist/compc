@@ -290,7 +290,7 @@ void int_init(struct VM *vm)
     int_create(vm, "UM+",     3, PRIMITIVE, OP_UMADD);
     int_create(vm, ":",       1, INTERPRETER, INT_COLON);
     int_create(vm, ";",       1, INTERPRETER, INT_END_COLON);
-    int_create(vm, "\'",      1, INTERPRETER, INT_TICK);
+    int_create(vm, "[\']",    3, INTERPRETER, INT_TICK);
     vm_poke(vm, CURRENT, vm_peek(vm,LAST));
 	vm_poke(vm, CP,      181);
     vm_poke(vm, TO_IN,   0);
