@@ -68,6 +68,7 @@
 : PUTC    19 , ; IMMEDIATE 
 : GETC    20 , ; IMMEDIATE 
 
+
 : COMPILE R> DUP @ , 1 + >R ; 
 : COMPILE? STATE @ ; 
 : LITERAL COMPILE LIT , ; IMMEDIATE 
@@ -517,4 +518,19 @@ VARIABLE DPL
 
 ' QUIT BOOT ! 
 s" BOOT" CURRENT find 3 - BOOT SWAP ! DROP 
-   
+
+: [[ [COMPILE] [ ; IMMEDIATE 
+: ]] [COMPILE] ] ; IMMEDIATE 
+: [ COMPILE? [COMPILE] ] HERE 2 + [COMPILE] AHEAD ; IMMEDIATE 
+: ] COMPILE EXIT 
+    [COMPILE] THEN 
+    SWAP STATE ! 
+    COMPILE? IF [COMPILE] LITERAL THEN 
+    ; IMMEDIATE 
+: do >R ; 
+: if ROT IF DROP do ELSE SWAP DROP do THEN ; 
+: ifTrue [ NOP ] if ; 
+: ifFalse [ NOP ] SWAP if ; 
+: dip SWAP >R do R> ; 
+: times SWAP FOR AFT DUP dip THEN NEXT ; 
+: puts COUNT TYPE ; 
