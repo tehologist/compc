@@ -1,6 +1,6 @@
 
 : BOOT     0 ; 
-: DPL 5 ; 
+: DPL      5 ; 
 : SP0      6 ; 
 : RP0      7 ; 
 : '?KEY    8 ; 
