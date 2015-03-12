@@ -1,5 +1,6 @@
 
 : BOOT     0 ; 
+: DPL 5 ; 
 : SP0      6 ; 
 : RP0      7 ; 
 : '?KEY    8 ; 
@@ -299,6 +300,7 @@
 : WORD PARSE HERE PACK$ ; 
 : TOKEN BL PARSE 31 MIN NP @ OVER - 1 - PACK$ ; 
 : NAME> 2 CELLS - @ ; 
+: LINK> 3 CELLS - ; 
 : SAME? 
     FOR AFT 
         OVER R@ CELLS + @ 
@@ -464,7 +466,7 @@ DECIMAL
     ROT BASE @ UM* D+ R> 1+ R> 1- 
     REPEAT DROP R> R> THEN ; 
 
-VARIABLE DPL 
+
 : NUMBER? 
     OVER @ [CHAR] - = DUP >R IF 1 /STRING THEN 
     >R >R 0 DUP R> R> -1 DPL ! 
@@ -504,7 +506,7 @@ VARIABLE DPL
 : .ID ?DUP IF COUNT TYPE EXIT THEN ." {noNAME} " ; 
 : WORDS CURRENT @ 
     BEGIN 
-        DUP SPACE .ID SPACE 3 - @ ?DUP 
+        DUP SPACE .ID SPACE LINK> @ ?DUP 
     WHILE REPEAT CR ; 
 : STATS 
     NP @ HERE 2DUP - >R 
@@ -517,7 +519,7 @@ VARIABLE DPL
 : .S CR DEPTH FOR AFT R@ PICK . THEN NEXT ." <sp " ;  
 
 ' QUIT BOOT ! 
-s" BOOT" CURRENT find 3 - BOOT SWAP ! DROP 
+s" BOOT" CURRENT find LINK> BOOT SWAP ! DROP 
 
 : [[ [COMPILE] [ ; IMMEDIATE 
 : ]] [COMPILE] ] ; IMMEDIATE 
