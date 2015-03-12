@@ -520,19 +520,3 @@ DECIMAL
 
 ' QUIT BOOT ! 
 s" BOOT" CURRENT find LINK> BOOT SWAP ! DROP 
-
-: [[ [COMPILE] [ ; IMMEDIATE 
-: ]] [COMPILE] ] ; IMMEDIATE 
-: [ COMPILE? [COMPILE] ] HERE 2 + [COMPILE] AHEAD ; IMMEDIATE 
-: ] COMPILE EXIT 
-    [COMPILE] THEN 
-    SWAP STATE ! 
-    COMPILE? IF [COMPILE] LITERAL THEN 
-    ; IMMEDIATE 
-: do >R ; 
-: if ROT IF DROP do ELSE SWAP DROP do THEN ; 
-: ifTrue [ NOP ] if ; 
-: ifFalse [ NOP ] SWAP if ; 
-: dip SWAP >R do R> ; 
-: times SWAP FOR AFT DUP dip THEN NEXT ; 
-: puts COUNT TYPE ; 
