@@ -208,7 +208,7 @@ namespace CompCS
                         PUSHDS(TRUE);
                         NEXT();
                         break;
-                    default:
+                    default: // Call
                         PUSHDS(data[PC]);
                         NEXT();
                         PUSHRS((ushort)PC);
