@@ -262,4 +262,8 @@ void loop() {
   Serial.println(\"\\nRestart\\n\");
 }
 """
-print head + forth + tail 
+
+f = open("forth.ino","w+")
+f.write(head + forth + tail)
+f.close()
+
