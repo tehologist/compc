@@ -292,7 +292,7 @@ void int_init(struct VM *vm)
     int_create(vm, ";",       1, INTERPRETER, INT_END_COLON);
     int_create(vm, "[\']",    3, INTERPRETER, INT_TICK);
     vm_poke(vm, CURRENT, vm_peek(vm,LAST));
-	vm_poke(vm, CP,      181);
+    vm_poke(vm, CP,      512);
     vm_poke(vm, TO_IN,   0);
     vm_poke(vm, NUM_TIB, 100);
     vm_poke(vm, TIB,     101);
